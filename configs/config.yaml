@@ -1,0 +1,65 @@
+# LLM4LRL Configuration
+
+# Model Configuration
+model:
+  base_model: "mistralai/Mistral-7B-v0.1"  # Base model to fine-tune
+  peft_config:
+    peft_type: "lora"  # Options: lora, qlora
+    r: 8  # LoRA rank
+    lora_alpha: 32
+    lora_dropout: 0.1
+    target_modules: ["q_proj", "v_proj"]
+    bias: "none"
+    task_type: "CAUSAL_LM"
+    inference_mode: false
+
+# Training Configuration
+training:
+  output_dir: "outputs"
+  num_train_epochs: 3
+  per_device_train_batch_size: 4
+  per_device_eval_batch_size: 4
+  gradient_accumulation_steps: 4
+  learning_rate: 2e-4
+  max_grad_norm: 0.3
+  warmup_ratio: 0.03
+  evaluation_strategy: "steps"
+  eval_steps: 200
+  save_strategy: "steps"
+  save_steps: 200
+  logging_steps: 10
+  fp16: true
+  optim: "adamw_torch"
+  seed: 42
+
+# Data Configuration
+data:
+  language: "myw"  # Language code for Myanmar/Burmese Wikipedia
+  language_name: "Myanmar"  # Full language name
+  max_length: 512
+  train_test_split: 0.1
+  preprocessing:
+    remove_html: true
+    remove_special_chars: true
+    lowercase: false
+    normalize_unicode: true
+    remove_extra_whitespace: true
+    min_length: 50  # Minimum text length to keep
+
+# Evaluation Configuration
+evaluation:
+  metrics:
+    - "perplexity"
+    - "accuracy"
+  generate_samples: true
+  num_samples: 5
+  max_new_tokens: 100
+
+# Logging Configuration
+logging:
+  wandb:
+    project: "LLM4LRL"
+    entity: "your-username"
+    tags: ["low-resource", "lora", "myanmar"]
+  save_model_card: true
+  log_predictions: true 
