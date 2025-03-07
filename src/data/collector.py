@@ -7,6 +7,7 @@ from tqdm import tqdm
 from datetime import datetime
 import json
 from huggingface_hub import list_datasets
+import re
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -172,6 +173,54 @@ class DataCollector:
         except Exception as e:
             logger.error(f"Error collecting mC4 data: {e}")
             return None
+
+def process_myanmar_wiki_data(json_file_path):
+    """
+    Process the Myanmar Wikipedia JSON data to extract useful text content
+    """
+    with open(json_file_path, 'r', encoding='utf-8') as file:
+        wiki_data = json.load(file)
+    
+    processed_data = []
+    for article in wiki_data:
+        # Extract clean text content
+        text = article['text']
+        # Remove wiki markup and special characters
+        clean_text = clean_wiki_text(text)
+        # Split into sentences
+        sentences = split_into_sentences(clean_text)
+        
+        processed_data.extend(sentences)
+    
+    return processed_data
+
+def clean_wiki_text(text):
+    """
+    Clean Wikipedia text by removing markup, references, etc.
+    """
+    # Remove wiki markup patterns
+    text = re.sub(r'\{\{.*?\}\}', '', text)
+    text = re.sub(r'\[\[(?:[^|\]]*\|)?([^\]]+)\]\]', r'\1', text)
+    text = re.sub(r'<.*?>', '', text)
+    # Remove references
+    text = re.sub(r'\[\d+\]', '', text)
+    return text.strip()
+
+def split_into_sentences(text):
+    """
+    Split Myanmar text into sentences
+    """
+    # Basic sentence splitting for Myanmar text
+    # You might need to adjust these patterns based on Myanmar language rules
+    sentences = re.split(r'[။၊]', text)
+    return [s.strip() for s in sentences if s.strip()]
+
+def save_processed_data(processed_data, output_file):
+    """
+    Save the processed data to a file
+    """
+    with open(output_file, 'w', encoding='utf-8') as file:
+        json.dump(processed_data, file, ensure_ascii=False, indent=2)
 
 def main():
     parser = argparse.ArgumentParser(description="Collect data for low-resource language")

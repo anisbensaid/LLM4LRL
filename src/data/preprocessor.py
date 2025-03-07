@@ -2,7 +2,7 @@ import argparse
 import logging
 from pathlib import Path
 import yaml
-from datasets import load_from_disk
+from datasets import load_from_disk, load_dataset
 import re
 from typing import List, Dict
 import numpy as np
@@ -61,7 +61,10 @@ def main():
     preprocessor = TextPreprocessor(config)
     
     # Load and process dataset
-    dataset = load_from_disk(args.input)
+    if args.input.endswith('.json'):
+        dataset = load_dataset('json', data_files=args.input)['train']  # Add ['train'] to get the actual dataset
+    else:
+        dataset = load_from_disk(args.input)
     processed_dataset = preprocessor.process_dataset(dataset)
     
     # Save processed dataset
